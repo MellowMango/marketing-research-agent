@@ -5,8 +5,11 @@ from pydantic import BaseModel
 import requests
 import openai
 import uvicorn
-from fastapi import FastAPI, Body, HTTPException, Depends
+from fastapi import FastAPI, Body, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 
 # Load environment variables from .env file if it exists
@@ -27,6 +30,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Create templates and static directories if they don't exist
+os.makedirs("templates", exist_ok=True)
+os.makedirs("static", exist_ok=True)
+
+# Set up Jinja2 templates
+templates = Jinja2Templates(directory="templates")
+
 # ----------------------------------------------------------------
 # 1. Configuration / Environment
 # ----------------------------------------------------------------
@@ -38,8 +48,14 @@ if not OPENAI_API_KEY:
 if not TAVILY_API_KEY:
     print("Warning: TAVILY_API_KEY is not set. Search functionality will be limited.")
 
-# Initialize OpenAI client
-openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+# Initialize OpenAI client - fixing the initialization to handle version compatibility
+try:
+    # Try the new client method first
+    openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+except TypeError:
+    # Fall back to using the older method if there's a TypeError
+    openai.api_key = OPENAI_API_KEY
+    openai_client = openai
 
 # ----------------------------------------------------------------
 # 2. Tavily AI Search Tool
@@ -68,9 +84,11 @@ def tavily_ai_search(query: str) -> Dict[str, Any]:
                 "query": query
             }
         
+        # Try both header formats for Tavily API
         headers = {
             "Content-Type": "application/json",
-            "X-API-Key": TAVILY_API_KEY
+            "X-API-Key": TAVILY_API_KEY,
+            "Authorization": f"Bearer {TAVILY_API_KEY}"  # Adding Bearer token format as well
         }
         
         payload = {
@@ -88,6 +106,14 @@ def tavily_ai_search(query: str) -> Dict[str, Any]:
         )
         
         if response.status_code != 200:
+            # Try alternative endpoint format
+            alt_response = requests.post(
+                "https://api.tavily.com/v1/search",
+                headers=headers,
+                json=payload
+            )
+            if alt_response.status_code == 200:
+                return alt_response.json()
             raise Exception(f"Tavily API returned status code {response.status_code}: {response.text}")
         
         return response.json()
@@ -209,6 +235,11 @@ class AgentResponse(BaseModel):
     analysis: str
     search_query: str
     model_used: str
+    
+    # Configure model to disable protected namespace warnings
+    model_config = {
+        "protected_namespaces": ()
+    }
 
 def check_api_keys():
     """Check if required API keys are set and raise an exception if not."""
@@ -247,17 +278,30 @@ def run_agent(
         )
 
         # 3) Call OpenAI
-        response = openai_client.chat.completions.create(
-            model=request.model,
-            messages=[
-                {"role": "system", "content": "You are a helpful AI marketing research assistant."},
-                {"role": "user", "content": prompt_text},
-            ],
-            temperature=request.temperature,
-        )
-
-        # 4) Extract output text
-        output_text = response.choices[0].message.content
+        try:
+            # Try the new client method first
+            response = openai_client.chat.completions.create(
+                model=request.model,
+                messages=[
+                    {"role": "system", "content": "You are a helpful AI marketing research assistant."},
+                    {"role": "user", "content": prompt_text},
+                ],
+                temperature=request.temperature,
+            )
+            # Extract output text based on the response format
+            output_text = response.choices[0].message.content
+        except (AttributeError, TypeError):
+            # Fall back to the older method
+            response = openai_client.ChatCompletion.create(
+                model=request.model,
+                messages=[
+                    {"role": "system", "content": "You are a helpful AI marketing research assistant."},
+                    {"role": "user", "content": prompt_text},
+                ],
+                temperature=request.temperature,
+            )
+            # Extract output text from the older response format
+            output_text = response["choices"][0]["message"]["content"].strip()
 
         # 5) Return formatted response
         return AgentResponse(
@@ -281,7 +325,18 @@ def health_check():
     return {"status": "healthy", "version": "1.0.0"}
 
 # ----------------------------------------------------------------
-# 6. Run with uvicorn if invoked directly
+# 6. Frontend routes
+# ----------------------------------------------------------------
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    """Serve the home page with the agent interface."""
+    return templates.TemplateResponse("index.html", {"request": request})
+
+# Mount static files directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# ----------------------------------------------------------------
+# 7. Run with uvicorn if invoked directly
 # ----------------------------------------------------------------
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) 

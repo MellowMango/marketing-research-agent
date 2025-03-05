@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Research Agent</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        .header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .result {
+            margin-top: 30px;
+            white-space: pre-wrap;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        h1 {
+            color: #3b5998;
+        }
+        .spinner {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Marketing Research Agent</h1>
+            <p class="lead">Analyze businesses and generate marketing insights using AI</p>
+        </div>
+
+        <form id="agentForm">
+            <div class="mb-3">
+                <label for="businessName" class="form-label">Business Name</label>
+                <input type="text" class="form-control" id="businessName" placeholder="e.g., Wild Paws" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="websiteUrl" class="form-label">Website URL</label>
+                <input type="url" class="form-control" id="websiteUrl" placeholder="e.g., https://wildpawscolorado.org" required>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="model" class="form-label">Model</label>
+                    <select class="form-select" id="model">
+                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Faster)</option>
+                        <option value="gpt-4">GPT-4 (More detailed)</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="temperature" class="form-label">Temperature (Creativity: 0-1)</label>
+                    <input type="range" class="form-range" id="temperature" min="0" max="1" step="0.1" value="0.7">
+                    <div class="d-flex justify-content-between">
+                        <small>Precise</small>
+                        <small id="tempValue">0.7</small>
+                        <small>Creative</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary" id="analyzeBtn">Analyze Business</button>
+            </div>
+        </form>
+        
+        <div class="spinner" id="spinner">
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <p class="mt-2">Generating analysis... This may take 1-2 minutes.</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <div class="result" id="result">
+            <h3>Analysis Results</h3>
+            <div id="analysisContent"></div>
+            
+            <div class="mt-4">
+                <h5>Search Query</h5>
+                <code id="searchQuery"></code>
+            </div>
+            
+            <div class="mt-2">
+                <small class="text-muted" id="modelUsed"></small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('temperature').addEventListener('input', function() {
+            document.getElementById('tempValue').textContent = this.value;
+        });
+        
+        document.getElementById('agentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const businessName = document.getElementById('businessName').value;
+            const websiteUrl = document.getElementById('websiteUrl').value;
+            const model = document.getElementById('model').value;
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            
+            // Hide any previous results
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // Show loading spinner
+            document.getElementById('spinner').style.display = 'block';
+            
+            try {
+                const response = await fetch('/run_agent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        business_name: businessName,
+                        website_url: websiteUrl,
+                        model: model,
+                        temperature: temperature,
+                        previous_response: ''
+                    }),
+                });
+                
+                // Hide spinner
+                document.getElementById('spinner').style.display = 'none';
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} - ${await response.text()}`);
+                }
+                
+                const result = await response.json();
+                
+                // Format and display the result
+                document.getElementById('analysisContent').innerHTML = formatAnalysis(result.analysis);
+                document.getElementById('searchQuery').textContent = result.search_query;
+                document.getElementById('modelUsed').textContent = `Generated using ${result.model_used}`;
+                document.getElementById('result').style.display = 'block';
+                
+                // Scroll to result
+                document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('errorMessage').textContent = `Error: ${error.message}`;
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        });
+        
+        function formatAnalysis(analysisText) {
+            // Convert markdown headings and lists to HTML
+            return analysisText
+                .replace(/## (.*)/g, '<h2>$1</h2>')
+                .replace(/- (.*)/g, '<li>$1</li>')
+                .replace(/\n\n/g, '<br><br>')
+                .split('\n').join('<br>');
+        }
+    </script>
+</body>
+</html> 

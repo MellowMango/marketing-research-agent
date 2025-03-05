@@ -1,0 +1,33 @@
+/* Additional styling for the Marketing Research Agent */
+
+.result h2 {
+    color: #3b5998;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+}
+
+.result ul {
+    padding-left: 1.5rem;
+}
+
+.result li {
+    margin-bottom: 0.5rem;
+}
+
+code {
+    background-color: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    display: block;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #6c757d;
+} 

@@ -113,7 +113,7 @@ The current implementation includes Tavily search. You can extend this by adding
 - Competitor analysis tools
 - SEO evaluation tools
 
-### Deployment
+## Deployment
 
 This application can be deployed to any platform that supports Python/FastAPI applications:
 - Heroku
@@ -121,6 +121,37 @@ This application can be deployed to any platform that supports Python/FastAPI ap
 - Google Cloud Run
 - Azure App Service
 - Digital Ocean App Platform
+
+## Troubleshooting
+
+### OpenAI API Issues
+
+If you encounter errors related to the OpenAI client initialization:
+
+1. **Version Compatibility**: The code is designed to work with both new (>=1.0.0) and older (<1.0.0) versions of the OpenAI Python library. If you encounter issues, try:
+   ```
+   pip install "openai>=0.28.0,<1.0.0"
+   ```
+
+2. **API Key Format**: Make sure your OpenAI API key follows the correct format (usually starts with "sk-").
+
+3. **Environment Variables**: Confirm your API keys are correctly set in your environment or .env file.
+
+### Connection Errors
+
+If the test script reports connection errors:
+
+1. Check that the API is running: `python main.py`
+2. Verify the API is running on the expected port (default: 8000)
+3. Check for any firewall or network restrictions
+
+### Tavily Search Issues
+
+If you're not getting search results:
+
+1. Verify your Tavily API key is correctly set
+2. The code includes a fallback to mock data if the Tavily key is not available
+3. Check your internet connection for external API calls
 
 ## License
 
