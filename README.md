@@ -1,158 +1,197 @@
-# Marketing Research Agent
+# 🚀 AI Marketing Research Agent
 
-A FastAPI application that creates an AI-powered marketing research agent. This agent analyzes businesses by:
+![License](https://img.shields.io/github/license/yourusername/marketing-research-agent)
+![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.103%2B-009688)
 
-1. Accepting user inputs (Business Name, Website URL)
-2. Performing web search using Tavily AI Search
-3. Building dynamic prompts based on search results
-4. Generating insights with OpenAI's GPT models
-5. Returning formatted marketing analysis
+An AI-powered marketing research tool that leverages OpenAI's GPT models and Tavily AI Search to analyze businesses and generate comprehensive marketing insights.
 
-## Features
+<div align="center">
+  <img src="docs/screenshot.png" alt="AI Marketing Research Agent" width="800px">
+  <p><em>Generate in-depth business analysis in seconds with AI</em></p>
+</div>
 
-- **AI-Powered Analysis**: Utilizes OpenAI's GPT models to analyze businesses
-- **Web Search Integration**: Uses Tavily AI Search to gather real-time information
-- **Customizable**: Configure model parameters, temperature, and other settings
-- **API-First Design**: Simple REST API for easy integration with other applications
-- **Well-Structured Output**: Returns analysis in a consistent, formatted structure
+## ✨ Features
 
-## Setup
+- **🧠 AI-Powered Analysis**: Harnesses OpenAI's GPT models to provide deep marketing insights
+- **🔍 Intelligent Web Research**: Uses Tavily AI Search to gather real-time information from across the web
+- **📊 Structured Reports**: Delivers insights in a consistent, organized format with SWOT analysis, audience insights, and actionable recommendations
+- **⚙️ Model Selection**: Choose between different OpenAI models for varying levels of analysis depth
+- **🎛️ Customizable Parameters**: Adjust temperature and other settings to control creativity and precision
+- **🖥️ Modern Web Interface**: Clean, responsive UI built with Bootstrap for desktop and mobile
+- **🔌 API-First Design**: Simple REST API for easy integration with other applications
+- **🔐 Secure Configuration**: Environment-based configuration with proper security practices
+
+## 🌟 Why Use This Tool?
+
+Marketing research typically requires hours of manual web browsing, competitor analysis, and insight compilation. This AI-powered agent automates this process, delivering comprehensive reports in minutes that would normally take hours or days of research.
+
+Perfect for:
+- **Marketers** seeking quick insights on competitors
+- **Entrepreneurs** researching potential markets
+- **Product Managers** evaluating business landscapes
+- **Consultants** preparing client reports
+- **Students** working on business analysis projects
+
+## 🏗️ Architecture
+
+The application follows a modern, modular architecture:
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  FastAPI    │────▶│  Business   │────▶│  OpenAI     │
+│  Web Server │     │  Logic      │     │  Integration│
+└─────────────┘     └─────────────┘     └─────────────┘
+       │                   │                   │
+       │                   │                   │
+       ▼                   ▼                   ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Jinja2     │     │  Tavily     │     │  Response   │
+│  Templates  │     │  Search API │     │  Formatting │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+1. **User Input Layer**: Collects business details via web interface or API
+2. **Research Layer**: Gathers information using Tavily AI Search
+3. **Analysis Layer**: Processes data with OpenAI's models
+4. **Presentation Layer**: Formats insights into structured reports
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Python 3.8+ installed
+- Python 3.8+
 - OpenAI API key
-- Tavily API key (optional, but recommended for real search results)
+- Tavily API key (optional, but recommended)
 
 ### Installation
 
-1. Clone this repository:
-   ```
-   git clone [repository-url]
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/marketing-research-agent.git
    cd marketing-research-agent
    ```
 
-2. Create a virtual environment:
-   ```
+2. **Create and activate a virtual environment**
+   ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. Install dependencies:
-   ```
+3. **Install dependencies**
+   ```bash
    pip install -r requirements.txt
    ```
 
-4. Create a `.env` file from the example:
-   ```
+4. **Set up environment variables**
+   ```bash
    cp .env.example .env
+   # Edit .env with your API keys
    ```
 
-5. Edit the `.env` file with your API keys:
+5. **Run the application**
+   ```bash
+   python main.py
    ```
-   OPENAI_API_KEY=sk-your-openai-api-key
-   TAVILY_API_KEY=your-tavily-api-key
-   ```
 
-## Running the Application
+6. **Access the web interface**
+   Open your browser and navigate to http://localhost:8000
 
-Start the server with:
+### Docker Deployment
 
-```
-python main.py
-```
+For containerized deployment:
 
-Or directly with uvicorn:
-
-```
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```bash
+docker-compose up -d
 ```
 
-The API will be available at `http://localhost:8000`.
+## 📊 Example Usage
 
-## API Documentation
+### Web Interface
 
-Once running, access the interactive API documentation at:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+1. Enter the business name (e.g., "Tesla")
+2. Provide the website URL (e.g., "https://tesla.com")
+3. Select your preferred OpenAI model
+4. Adjust the temperature slider for creativity level
+5. Click "Analyze Business"
 
-### Example API Request
+### API
 
 ```bash
 curl -X POST -H "Content-Type: application/json" \
   -d '{
-    "business_name": "Wild Paws",
-    "website_url": "https://wildpawscolorado.org",
-    "model": "gpt-3.5-turbo",
+    "business_name": "Tesla",
+    "website_url": "https://tesla.com",
+    "model": "gpt-4",
     "temperature": 0.7
   }' \
   http://localhost:8000/run_agent
 ```
 
-### Example API Response
+## 🧩 How It Works
 
-```json
-{
-  "analysis": "## BUSINESS OVERVIEW\nWild Paws is a non-profit animal rescue organization based in Colorado...",
-  "search_query": "Wild Paws company business analysis marketing https://wildpawscolorado.org",
-  "model_used": "gpt-3.5-turbo"
-}
+1. **Data Collection**: The agent accepts a business name and website URL
+2. **Web Research**: It performs intelligent searches using Tavily AI to gather relevant information
+3. **Prompt Engineering**: The system constructs detailed prompts combining user inputs and search findings
+4. **AI Analysis**: OpenAI's models analyze the data, extracting key insights and patterns
+5. **Report Generation**: Results are formatted into a comprehensive marketing analysis report
+
+## 🛠️ Customization
+
+### Modifying the Analysis Template
+
+Edit the `build_prompt` function in `main.py` to customize the analysis format:
+
+```python
+def build_prompt(
+    previous_response: str,
+    business_name: str,
+    website_url: str,
+    search_results: str,
+) -> str:
+    # Customize the prompt format here
+    # ...
 ```
-
-## Extending the Application
-
-### Customizing the Prompt
-
-You can modify the `build_prompt` function in `main.py` to adjust the analysis format or instructions given to the model.
 
 ### Adding Additional Tools
 
-The current implementation includes Tavily search. You can extend this by adding additional tools such as:
+The current implementation can be extended with:
 - Website scrapers
 - Social media analyzers
-- Competitor analysis tools
-- SEO evaluation tools
+- Competitor comparison tools
+- SEO evaluation modules
+- Image and brand analysis
 
-## Deployment
+## 📚 API Documentation
 
-This application can be deployed to any platform that supports Python/FastAPI applications:
-- Heroku
-- AWS (EC2, Lambda with API Gateway)
-- Google Cloud Run
-- Azure App Service
-- Digital Ocean App Platform
+Once running, access the interactive API documentation at:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
-## Troubleshooting
+## 🤝 Contributing
 
-### OpenAI API Issues
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-If you encounter errors related to the OpenAI client initialization:
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-1. **Version Compatibility**: The code is designed to work with both new (>=1.0.0) and older (<1.0.0) versions of the OpenAI Python library. If you encounter issues, try:
-   ```
-   pip install "openai>=0.28.0,<1.0.0"
-   ```
+## 📝 License
 
-2. **API Key Format**: Make sure your OpenAI API key follows the correct format (usually starts with "sk-").
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-3. **Environment Variables**: Confirm your API keys are correctly set in your environment or .env file.
+## 🙏 Acknowledgements
 
-### Connection Errors
+- [OpenAI](https://openai.com/) for their powerful GPT models
+- [Tavily AI](https://tavily.com/) for their search API
+- [FastAPI](https://fastapi.tiangolo.com/) for the efficient web framework
+- All open-source contributors who make their work available for projects like this
 
-If the test script reports connection errors:
+---
 
-1. Check that the API is running: `python main.py`
-2. Verify the API is running on the expected port (default: 8000)
-3. Check for any firewall or network restrictions
-
-### Tavily Search Issues
-
-If you're not getting search results:
-
-1. Verify your Tavily API key is correctly set
-2. The code includes a fallback to mock data if the Tavily key is not available
-3. Check your internet connection for external API calls
-
-## License
-
-[Specify your license here] 
+<div align="center">
+  <p>Made with ❤️ by <a href="https://github.com/yourusername">Your Name</a></p>
+  <p>If you find this project helpful, please consider giving it a ⭐</p>
+</div> 
